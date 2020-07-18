@@ -4,6 +4,7 @@
 
 	#display-name {
 		border: none;
+		width: 15%;
   		border-bottom: 2px solid black;
 		background-color: #EFF0F1;
 	}
@@ -17,6 +18,7 @@
 		overflow-y : scroll;
 		height: 500px;
 		background-color: #E1ECF4;
+		padding-top: 9px;
 	}
 
 	#channel-list {
@@ -72,4 +74,46 @@
 		border: none;
 		background-color: #E1ECF4;
 		border-bottom: 2px solid black;
+	}
+
+	.private-members-list{
+		padding: 10px;
+		width: 100%;
+		background-color: #FFD662FF;
+		color: black;
+    	border-bottom: 1px solid black;
+	}
+
+	input:focus, textarea:focus, select:focus{
+        outline: none;
+    }
+
+    .private-members-list:hover{
+    	background-color: black;
+    	color: white;
+    }
+
+    .private-message-link:hover{
+    	text-decoration: none;
+    }
+
+    .mssg-inner{
+			display: inline-block;
+	}
+
+	.receive-mssg{
+			background-color: black;
+			color: white;
+			padding: 7px;
+			position: relative;
+			display: inline-block;
+	}
+
+	.send-mssg{
+			background-color: #CFE9BA;
+			color: black;
+			padding: 7px;
+			position: relative;
+			display: inline-block;
+			float: right;
 	}

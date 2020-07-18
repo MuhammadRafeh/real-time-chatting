@@ -15,17 +15,17 @@
 			    Show
 			  </button>
 			  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-			    <a class="dropdown-item" href="#">Public Channels</a>
-			    <a class="dropdown-item" href="#">Private Channels</a>
-			    <a class="dropdown-item" href="#">Private Messages</a>
+			    <a class="dropdown-item" href="">Public Channels</a>
+			    <a class="dropdown-item" href="">Private Channels</a>
+			    <a class="dropdown-item" href="" id="private-message-dropdown">Private Messages</a>
 			  </div>
 			</div>
 
 		</div>					
 		<div class="col-md-3 col-sm-6 text-center">
-			<button class="btn btn-success" id="private-message">Private Messages</button>
+			<button class="btn btn-success" id="private-message" data-toggle="modal" data-target="#taking-friends-input">Private Messages</button>
 		</div>					
-		<div class="col-md-2 col-sm-6 text-center">
+		<div class="col-md-3 col-sm-6 text-center">
 
 			<!-- Drop Down for creating the channel-->
 			<div class="dropdown">
@@ -39,8 +39,10 @@
 			</div>
 
 		</div>					
-		<div class="col-md-5 col-sm-6 text-center">
-		<span id="display-label">Display Name</span> <input type="text" id="display-name">
+		<div class="col-md-4 col-sm-6 text-center">
+			<span id="display-label">Display Name</span>
+			<input type="text" id="display-name">&nbsp;&nbsp;&nbsp;
+			<button class="btn btn-secondary" id="name-save-button">Save</button>
 		</div>					
 	</div>
 </div>
@@ -48,7 +50,7 @@
 <!-- 2nd Row that's the medium-->
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-md-3 text-white rounded bg-primary" id="channel-list">
+		<div class="col-md-3 text-white rounded bg-primary pt-3" id="channel-list">
 			
 		</div>
 		<div class="col-md-9 border border-light" id="medium">
@@ -63,8 +65,8 @@
 			<span id="id_label">Your Id:</span> <span id="allocate_id"></span>
 		</div>
 		<div class="col-md-9" id="form-div">
-			<form>
-				<input type="text" name="message" width="100" placeholder="Write Your Message Here">
+			<form id="send-message">
+				<input type="text" name="message" width="100" minlength="1" placeholder="Write Your Message Here" data-id="">
 				<button type="submit" class="btn btn-light">Send</button>
 				<input type="file" id="attachment">
 			</form>
@@ -114,6 +116,44 @@
   </div>
 </div>
 
+<!-- popup for taking the input for friend's id to communicate with it-->
+<div class="modal fade" id="taking-friends-input" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Enter Your Friend's ID</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="text" name="modal-input" id="friend-id-input">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="input-channel btn btn-primary" id="submit-friend-id">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-
+<!-- popup for confirmation if user wants persoanl message with someone-->
+<div class="modal fade" id="private-decision" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Do you want to Communicate?</h5>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      	<div><span id="name"></span> want to communite whose id is <span id="id"></span></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="no" data-dismiss="modal">No</button>
+        <button type="button" class="input-channel btn btn-primary" id="yes" data-dismiss="modal">Yes</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,6 +1,9 @@
 import os, time
 import uuid
 
+#import datetime #datetime.datetime.now().time()
+from time import strftime, localtime #strftime("%H:%M:%S", localtime())
+
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
 
@@ -10,6 +13,17 @@ socketio = SocketIO(app)
 
 users = {} #request.sid, ids
 
+users_name = {} #id then name
+
+private_rooms = {} #id and then list as value list will be the id's 
+
+private_messages = {} #'23 12' as a key then in list as a values we have a messages 
+#name, from, message, to, timestamp, key will be 10723 to 23003243
+
+public_members = {} #channel name and then members
+
+private_channels = {} #channel name and members 
+
 #str(uuid.uuid4().fields[-1])[:5] to take random ids
 
 #Private Channels List
@@ -17,8 +31,8 @@ private_record = {} #using for storing the channel id and the names of users who
 private_info = {}
 
 #to get dict key from values
-def get_key(val):
-	for key, value in users.items():
+def get_key(val, dic):
+	for key, value in dic.items():
 		if val == value:
 			return key
 	return 'n'
@@ -41,19 +55,65 @@ def connect():
 			emit('id generated', {"id": ids})
 			break
 	users[request.sid] = ids
+	users_name[ids] = ''
+	print(users_name)
 
 @socketio.on("reconnected")
 def reconnect(data):
+	print(users)
 	ids = data["cookie"]
-	found = get_key(ids) #getting the key of id that's probabily a socket.id/request.sid
+	name = data['name']
+	found = get_key(ids, users) #getting the key of id that's probabily a socket.id/request.sid
 	if found!='n': #After reconnection we founded the id in server that's good
 		del users[found] #Deleting the previous socket id
 		users[request.sid] = ids #Assigning the new user
+		users_name[ids] = name
 		emit('reconnection success', {'id': ids})
 	else:
-		emit('user voilated')
+		users[request.sid] = ids #Assigning the new user
+		emit('reconnection success', {'id': ids})
+		users_name[ids] = name
+		#emit('user voilated')
 	print(users)
 
+@socketio.on('name changed')
+def name_changed(data):
+	name = data['name']
+	req = request.sid
+	if req in users.keys():
+		ids = users[req]
+		users_name[ids] = name
+
+@socketio.on('send private message')
+def snd_mssg(data):
+	mssg = data['message']
+	to = data['id']
+	from_sid = request.sid
+	if from_sid not in users.keys():
+		return
+
+	if to not in users.values():
+		emit('user not found')
+		return
+
+	from_id = users[from_sid]
+	to_sid = get_key(to, users)
+	time = strftime("%H:%M:%S", localtime())
+	# private_messages[ids+' '+req_id] = []
+	for i in private_messages.keys():
+		if to in i.split() and from_id in i.split():
+			break
+	# Now here In i we have a key. Now below is the information of those who send the message
+	from_name = users_name[from_id]
+	to_name = users_name[to]
+	message = {'from_name': from_name, 'from': from_id, 'message': mssg, 'to_name':to_name, 'to': to, 'time': time}
+	private_messages[i].append(message)
+
+	if len(private_messages[i])>100:   #It is saving record of 100 most recent messages
+		private_messages[i].pop(0)
+
+	emit('receive private message from friend',  message, room=to_sid)
+	emit('mine send message', message)
 
 @socketio.on("private creation")
 def private(data):
@@ -81,10 +141,70 @@ def public(data):
 
 @socketio.on("private message")
 def messaging_privately(data):
-	#friend = str(data["friend_id"])
-	#if friend not in users:
-	#	emit('user not found')
-	emit('mssg', room=request.sid)
-	print(request.sid)
+	name = data['name']
+	friend_id = data['friend_id']
+	if friend_id in users.values():
+		print('here')
+		friends_sid = get_key(data['friend_id'], users) #friend's id is what you want to connect for chat
+		print(friends_sid)
+		print(users[request.sid])
+		emit('want private mssg', {'id': users[request.sid], 'name': name}, room=friends_sid)
 
+@socketio.on('i want private connection')
+def private_connection_established(data):
+	req_sid = request.sid
+	req_id = users[req_sid]
+	ids = data['id']
+	if ids in users.values():
+		sid = get_key(ids, users)
+		emit('private_connection_done', {'id': ids}, room=sid)
+		if ids not in private_rooms.keys():#this id belongs to who accepts the connection
+			private_rooms[ids] = []  #If key not exists then initiating the key to array
+		if req_id not in private_rooms.keys():
+			private_rooms[req_id] = [] 
+
+		#Possible they can already exist so checking if it's not exist then append
+		if req_id not in private_rooms[ids]:
+			private_rooms[ids].append(req_id)
+		if ids not in private_rooms[req_id]:
+			private_rooms[req_id].append(ids)
+		print(private_rooms)
+
+		if (ids+' '+req_id) not in private_messages.keys() and (req_id+' '+ids) not in private_messages.keys():
+			private_messages[ids+' '+req_id] = []
+
+
+
+
+@socketio.on('i dont want private connection')
+def private_connection_failed(data):
+	ids = data['id']
+	if ids in users.values():
+		sid = get_key(ids, users)
+		emit('private_connection_unsuccess', {'id': ids}, room=sid)
+
+
+@socketio.on('get private mssges')
+def get_mssg(data):
+	ids = data['id']
+	if ids in private_rooms.keys():
+		info = []
+		names = []
+		members = private_rooms[ids]
+		for member in members:	#here member meant by id that is generated by server
+			names.append(users_name[member])
+		if len(names)>1:
+			i = 0
+			for name in names:
+				info.append([name, members[i]])
+				i += 1
+		elif len(names)==1:
+			info.append([names[0], members[0]])
+		else:
+			emit('You have no friends yet')
+			return
+		print('info', info)
+		print(names)
+		print(members)
+		emit('get private mssges response', {'members': info})
 
