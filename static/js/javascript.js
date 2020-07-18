@@ -24,7 +24,14 @@ getprivatemessage = ids => {
 	//document.querySelectorAll('.private-members-list').style.background = 'yellow';
 	//document.querySelector(`div[id=${ids}]`).style.background = 'black';
 	//document.querySelector(`div[id=${ids}]`).style.color = 'white';
+	
+
 	event.preventDefault();//Just preventing from Reload. Another way to do it.
+}
+
+function scrollToBottom (id) {
+   var div = document.getElementById(id);
+   div.scrollTop = div.scrollHeight - div.clientHeight;
 }
 
 //Function to chk if user try to change cookie
@@ -58,6 +65,8 @@ getprivatemessage = ids => {
 
 
 document.addEventListener('DOMContentLoaded', function() {
+
+	document.querySelector('#send-button').disabled = true;
 
 	document.querySelector('#name-save-button').disabled = true;
 
@@ -114,6 +123,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		return false;
 	}
 
+	document.querySelector('input[name=message]').onkeyup = () => {
+		if (document.querySelector('input[name=message]').value.length>1)
+			document.querySelector('#send-button').disabled = false
+		else
+			document.querySelector('#send-button').disabled = true
+
+	}
+
 	document.querySelector('#send-message').onsubmit = () => {
 		const id = document.querySelector('input[name=message]').dataset.id
 		const mssg = document.querySelector('input[name=message]').value
@@ -123,10 +140,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		else{
 			alert('First Select Something!')
 		}
-
+		document.getElementById("send-input-field").value = '';
 		event.preventDefault();
 	}
-
 
 })
 
@@ -274,6 +290,7 @@ socket.on('receive private message from friend', data => {
 	const content = template({'name': from_name, 'time': time, 'message': message});
 
 	document.querySelector('#medium').innerHTML += content;
+	scrollToBottom('medium')
 })
 
 socket.on('mine send message', data => {
@@ -285,5 +302,6 @@ socket.on('mine send message', data => {
 	const content = template({'name': from_name, 'time': time, 'message': message});
 
 	document.querySelector('#medium').innerHTML += content;
+	scrollToBottom('medium')
 
 })

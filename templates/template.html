@@ -24,7 +24,7 @@
 	</script>
 	<script id="private-messages-from-friend" type="text/x-handlebars-template">
 		{% raw -%}
-			<div style="margin-bottom: 12px; display: relative;">
+			<div style="margin-bottom: 12px; position: relative;">
 				<div class="receive-mssg">
 					<div style="border-bottom: 1px solid grey;">
 						<div class="mssg-inner">
@@ -34,7 +34,7 @@
 							{{time}}
 						</div>
 					</div>
-					<div>
+					<div style="word-break: break-all; word-wrap: break-word;">
 						{{message}}
 					</div>
 				</div>
@@ -43,7 +43,7 @@
 	</script>
 	<script id="send-private-message" type="text/x-handlebars-template">
 		{% raw -%}
-			<div style="margin-bottom: 12px; overflow: auto; display: relative;">
+			<div style="margin-bottom: 12px; overflow: auto; position: relative;">
 				<div class="send-mssg">
 					<div style="border-bottom: 1px solid grey;">
 						<div class="mssg-inner">
@@ -53,7 +53,7 @@
 							{{time}}
 						</div>
 					</div>
-					<div>
+					<div style="word-break: break-all; word-wrap: break-word;">
 						{{message}}
 					</div>
 				</div>
