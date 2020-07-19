@@ -11,45 +11,32 @@ if (!localStorage.getItem('name'))
 if (!localStorage.getItem('id'))
 	localStorage.setItem('id', '');
 
-function receive_private_message_from_friend(data, save=null){
+function receive_private_message_from_friend(data){
 	// const mine_id = data.to
 	const from_name = data.from_name
 	// const from_id = data.from
 	// const mine_name = data.to_name
 	const message = data.message
 	const time = data.time
-	const key = data.members
 	const template = Handlebars.compile(document.querySelector('#private-messages-from-friend').innerHTML);
 	const content = template({'name': from_name, 'time': time, 'message': message});
 
 	document.querySelector('#medium').innerHTML += content;
 	scrollToBottom('medium')
 
-	if (save===null) //if save is null it's mean user is getting data from their on side then no need to go below
-		return;
 
-	delete data.members //We don't need of it right now
-
-	private_messages[key].push(data)
 }
 
-function mine_send_message(data, save=null){
+function mine_send_message(data){
 	const from_name = data.from_name
 	const time = data.time
 	const message = data.message
-	const key = data.members
 	const template = Handlebars.compile(document.querySelector('#send-private-message').innerHTML);
 	const content = template({'name': from_name, 'time': time, 'message': message});
 
 	document.querySelector('#medium').innerHTML += content;
 	scrollToBottom('medium')
 
-	if (save===null)
-		return;
-
-	delete data.members //We don't need of it right now
-
-	private_messages[key].push(data)
 }
 
 // const private_channel_list = []
@@ -354,11 +341,28 @@ socket.on('You have no friends yet', () => {
 })
 
 socket.on('receive private message from friend', data => {
-		receive_private_message_from_friend(data, save=true)
+
+		const key = data.members
+
+		const active = document.querySelector('input[name=message]').dataset.id
+		
+		if (key.split(" ").includes(active)){
+			receive_private_message_from_friend(data)
+		}
+
+		delete data.members //We don't need of it right now
+
+		private_messages[key].push(data)
 })
 
 socket.on('mine send message', data => {	
-	mine_send_message(data, save=true);
+	mine_send_message(data);
+
+	const key = data.members
+
+	delete data.members //We don't need of it right now
+
+	private_messages[key].push(data)
 })
 
 socket.on('take private messages', data => {
