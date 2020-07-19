@@ -11,22 +11,98 @@ if (!localStorage.getItem('name'))
 if (!localStorage.getItem('id'))
 	localStorage.setItem('id', '');
 
+function receive_private_message_from_friend(data, save=null){
+	// const mine_id = data.to
+	const from_name = data.from_name
+	// const from_id = data.from
+	// const mine_name = data.to_name
+	const message = data.message
+	const time = data.time
+	const key = data.members
+	const template = Handlebars.compile(document.querySelector('#private-messages-from-friend').innerHTML);
+	const content = template({'name': from_name, 'time': time, 'message': message});
+
+	document.querySelector('#medium').innerHTML += content;
+	scrollToBottom('medium')
+
+	if (save===null) //if save is null it's mean user is getting data from their on side then no need to go below
+		return;
+
+	delete data.members //We don't need of it right now
+
+	private_messages[key].push(data)
+}
+
+function mine_send_message(data, save=null){
+	const from_name = data.from_name
+	const time = data.time
+	const message = data.message
+	const key = data.members
+	const template = Handlebars.compile(document.querySelector('#send-private-message').innerHTML);
+	const content = template({'name': from_name, 'time': time, 'message': message});
+
+	document.querySelector('#medium').innerHTML += content;
+	scrollToBottom('medium')
+
+	if (save===null)
+		return;
+
+	delete data.members //We don't need of it right now
+
+	private_messages[key].push(data)
+}
+
 // const private_channel_list = []
 // const public_channel_list = []
 
 // const private_friends = []
 
-private_messages = {} //name, id, message, to, timestamp, key will be 10723 to 23003243
+var private_messages = {} //name, id, message, to, timestamp, key will be 10723 to 23003243
 
 
 getprivatemessage = ids => {
-	document.querySelector('input[name=message]').dataset.id = ids
-	//document.querySelectorAll('.private-members-list').style.background = 'yellow';
-	//document.querySelector(`div[id=${ids}]`).style.background = 'black';
-	//document.querySelector(`div[id=${ids}]`).style.color = 'white';
-	
+	event.preventDefault();
+	if (document.querySelector('input[name=message]').dataset.id!==''){ //getting the previous id and doing stuff with it
+		document.getElementById(document.querySelector('input[name=message]').dataset.id).style.background = 'yellow';
+		document.getElementById(document.querySelector('input[name=message]').dataset.id).style.color = 'black';
+		document.getElementById('medium').innerHTML = '';
+	}
 
-	event.preventDefault();//Just preventing from Reload. Another way to do it.
+	//Here user selected another id
+
+	document.querySelector('input[name=message]').dataset.id = ids
+
+
+	document.getElementById(ids).style.background = '#2f3630';
+	document.getElementById(ids).style.color = 'white';
+
+	//Below we start to fill the medium with previous messages
+
+	const list_of_keys = Object.keys(private_messages) //hetting private_messages keys i.e the ids that comunicates
+	let key;
+	for (let i = 0; i<list_of_keys.length; i++){
+		const split_list = list_of_keys[i].split(" ")
+		if (split_list.includes(ids)){
+			key = list_of_keys[i]
+			break
+		}
+	}
+
+	//Now, here we get key successful, that shows communication 
+
+	//private_messages[key] list of messages that below I am going to display on medium
+
+	const messages = private_messages[key] //list of object where each object is a message
+
+	for (let i = 0; i < messages.length; i++){ //I created loop to through the messages
+		const obj = messages[i] //Obj is a object which is a message inside
+		if (obj.from==ids){
+			receive_private_message_from_friend(obj)
+		}
+		else
+			mine_send_message(obj)
+	}
+
 }
 
 function scrollToBottom (id) {
@@ -278,30 +354,20 @@ socket.on('You have no friends yet', () => {
 })
 
 socket.on('receive private message from friend', data => {
-
-	// const mine_id = data.to
-	const from_name = data.from_name
-	const from_id = data.from
-	// const mine_name = data.to_name
-	const message = data.message
-	const time = data.time
-
-	const template = Handlebars.compile(document.querySelector('#private-messages-from-friend').innerHTML);
-	const content = template({'name': from_name, 'time': time, 'message': message});
-
-	document.querySelector('#medium').innerHTML += content;
-	scrollToBottom('medium')
+		receive_private_message_from_friend(data, save=true)
 })
 
-socket.on('mine send message', data => {
-	const from_name = data.from_name
-	const time = data.time
-	const message = data.message
+socket.on('mine send message', data => {	
+	mine_send_message(data, save=true);
+})
 
-	const template = Handlebars.compile(document.querySelector('#send-private-message').innerHTML);
-	const content = template({'name': from_name, 'time': time, 'message': message});
+socket.on('take private messages', data => {
+	const mssg = data.messages //mssg is a list of objects where each object is a message
+	const member = data.members //key '102021 12121'
+	private_messages[member] = mssg
+})
 
-	document.querySelector('#medium').innerHTML += content;
-	scrollToBottom('medium')
-
+socket.on('create private message list', data => { //On Newly connection when established!
+	const key = data.key
+	private_messages[key] = []
 })

@@ -74,7 +74,21 @@ def reconnect(data):
 		emit('reconnection success', {'id': ids})
 		users_name[ids] = name
 		#emit('user voilated')
-	print(users)
+	list_of_members = [] #Storing the keys which is actually telling me how many connection he has
+
+	for i in private_messages.keys():
+		if ids in i.split():
+			list_of_members.append(i)
+
+	if len(list_of_members)==0:   #If there is no communication before just return it.
+		return
+
+	for key in list_of_members:
+		emit('take private messages', {'messages' :private_messages[key], 'members': key})
+		time.sleep(1)
+	#private_messages[i] is list of objects
+	#and i is a key
+	# print(users)
 
 @socketio.on('name changed')
 def name_changed(data):
@@ -103,7 +117,7 @@ def snd_mssg(data):
 	for i in private_messages.keys():
 		if to in i.split() and from_id in i.split():
 			break
-	# Now here In i we have a key. Now below is the information of those who send the message
+	# Now here In i we have a key '1212 1212'. Now below is the information of those who send the message
 	from_name = users_name[from_id]
 	to_name = users_name[to]
 	message = {'from_name': from_name, 'from': from_id, 'message': mssg, 'to_name':to_name, 'to': to, 'time': time}
@@ -112,6 +126,7 @@ def snd_mssg(data):
 	if len(private_messages[i])>100:   #It is saving record of 100 most recent messages
 		private_messages[i].pop(0)
 
+	message['members'] = i #Adding key for easyness for client side
 	emit('receive private message from friend',  message, room=to_sid)
 	emit('mine send message', message)
 
@@ -172,6 +187,7 @@ def private_connection_established(data):
 
 		if (ids+' '+req_id) not in private_messages.keys() and (req_id+' '+ids) not in private_messages.keys():
 			private_messages[ids+' '+req_id] = []
+			emit('create private message list', {'key': ids+' '+req_id})
 
 
 
