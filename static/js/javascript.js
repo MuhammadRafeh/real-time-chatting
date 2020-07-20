@@ -22,7 +22,6 @@ function receive_private_message_from_friend(data){
 	const content = template({'name': from_name, 'time': time, 'message': message});
 
 	document.querySelector('#medium').innerHTML += content;
-	scrollToBottom('medium')
 
 
 }
@@ -35,7 +34,6 @@ function mine_send_message(data){
 	const content = template({'name': from_name, 'time': time, 'message': message});
 
 	document.querySelector('#medium').innerHTML += content;
-	scrollToBottom('medium')
 
 }
 
@@ -81,6 +79,9 @@ getprivatemessage = ids => {
 
 	const messages = private_messages[key] //list of object where each object is a message
 
+	if (typeof(messages)==='undefined')
+		return;
+
 	for (let i = 0; i < messages.length; i++){ //I created loop to through the messages
 		const obj = messages[i] //Obj is a object which is a message inside
 		if (obj.from==ids){
@@ -89,6 +90,7 @@ getprivatemessage = ids => {
 		else
 			mine_send_message(obj)
 	}
+	scrollToBottom('medium')
 
 }
 
@@ -270,13 +272,13 @@ socket.on('reconnection success', data => {
 socket.on('private created', data => {
 	alert("Private Channel Created Successfully")
 	$('#private-channel').modal('hide')
-	private_channel_list.push({'id': data.id, 'name': data.channel_name})
+	// private_channel_list.push({'id': data.id, 'name': data.channel_name})
 })
 
 socket.on('public created', data => {
 	alert("Public Channel Created Successfully")
 	$('#public-channel').modal('hide')
-	public_channel_list.push({'id': data.id, 'name': data.channel_name})
+	// public_channel_list.push({'id': data.id, 'name': data.channel_name})
 })
 
 socket.on('user not found', () => {
@@ -348,6 +350,8 @@ socket.on('receive private message from friend', data => {
 		
 		if (key.split(" ").includes(active)){
 			receive_private_message_from_friend(data)
+			scrollToBottom('medium')
+
 		}
 
 		delete data.members //We don't need of it right now
@@ -357,12 +361,19 @@ socket.on('receive private message from friend', data => {
 
 socket.on('mine send message', data => {	
 	mine_send_message(data);
+	scrollToBottom('medium')
 
 	const key = data.members
 
 	delete data.members //We don't need of it right now
 
+	try{
 	private_messages[key].push(data)
+	}
+	catch(err){
+		console.log(err)
+	}
+
 })
 
 socket.on('take private messages', data => {
