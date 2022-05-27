@@ -12,7 +12,7 @@ Real time chatting is a Flask based web app where 2 users can chat with each oth
 Run following below commands in terminal
 ```py
 pip install -r requirements.txt
-export FLASK_APP="application.py"
+export FLASK_APP="app.py"
 export FLASK_DEBUG=1
 flask run
 ```
